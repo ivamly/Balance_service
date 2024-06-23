@@ -38,7 +38,7 @@ public class TransactionServiceTest {
         LocalDateTime timestamp = LocalDateTime.now();
 
         // Act
-        transactionService.createTransaction(user, null, amount, service, order);
+        transactionService.createTransactionWithouCounterpary(user, amount, service, order);
 
         // Assert
         verify(transactionRepository, times(1)).save(any(Transaction.class));
@@ -53,7 +53,7 @@ public class TransactionServiceTest {
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
-                () -> transactionService.createTransaction(null, null, amount, service, order));
+                () -> transactionService.createTransactionWithouCounterpary(null, amount, service, order));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class TransactionServiceTest {
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
-                () -> transactionService.createTransaction(user, null, null, service, order));
+                () -> transactionService.createTransactionWithouCounterpary(user, null, service, order));
     }
 
     @Test
@@ -78,6 +78,6 @@ public class TransactionServiceTest {
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
-                () -> transactionService.createTransaction(user, null, amount, service, order));
+                () -> transactionService.createTransactionWithouCounterpary(user, amount, service, order));
     }
 }

@@ -65,7 +65,7 @@ public class UserServiceTest {
         BigDecimal expectedBalance = initialBalance.add(depositAmount);
         assertEquals(expectedBalance, user.getBalance());
         verify(userRepository, times(1)).save(user);
-        verify(transactionService, times(1)).createTransaction(user, null, depositAmount, "DEPOSIT", "NONE");
+        verify(transactionService, times(1)).createTransactionWithouCounterpary(user, depositAmount, "DEPOSIT", "NONE");
     }
 
     @Test
@@ -86,7 +86,7 @@ public class UserServiceTest {
         BigDecimal expectedBalance = initialBalance.subtract(withdrawAmount);
         assertEquals(expectedBalance, user.getBalance());
         verify(userRepository, times(1)).save(user);
-        verify(transactionService, times(1)).createTransaction(user, null, withdrawAmount, "WITHDRAW", "NONE");
+        verify(transactionService, times(1)).createTransactionWithouCounterpary(user, withdrawAmount, "WITHDRAW", "NONE");
     }
 
     // Add more tests to cover edge cases and error scenarios

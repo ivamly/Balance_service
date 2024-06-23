@@ -1,13 +1,12 @@
 package com.ivmaly.transaction.models;
 
-
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transaction")
+@Table(name = "transactions")
 public class Transaction {
 
     @Id
@@ -25,12 +24,33 @@ public class Transaction {
     @Column(nullable = false)
     private BigDecimal amount;
 
+    @Column(nullable = false)
     private String service;
 
-    @Column(name = "order_description")
+    @Column(nullable = false)
     private String orderDescription;
 
+    @Column(nullable = false)
     private LocalDateTime timestamp;
+
+    public Transaction() {}
+
+    public Transaction(User user, BigDecimal amount, String service, String orderDescription) {
+        this.user = user;
+        this.amount = amount;
+        this.service = service;
+        this.orderDescription = orderDescription;
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public Transaction(User user, User counterparty, BigDecimal amount, String service, String orderDescription) {
+        this.user = user;
+        this.counterparty = counterparty;
+        this.amount = amount;
+        this.service = service;
+        this.orderDescription = orderDescription;
+        this.timestamp = LocalDateTime.now();
+    }
 
     public Long getTransactionId() {
         return transactionId;

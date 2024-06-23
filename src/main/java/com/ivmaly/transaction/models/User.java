@@ -15,6 +15,13 @@ public class User {
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 
+    public User() {
+    }
+
+    public User(BigDecimal balance) {
+        this.balance = balance;
+    }
+
     public Long getUserId() {
         return userId;
     }
@@ -29,7 +36,7 @@ public class User {
 
     public void setBalance(BigDecimal balance) {
         if (balance == null) {
-            throw new NullPointerException("Balance cannot be null");
+            throw new IllegalArgumentException("Balance cannot be null");
         }
         if (balance.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Balance cannot be negative");

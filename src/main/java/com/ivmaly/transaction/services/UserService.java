@@ -33,7 +33,7 @@ public class UserService {
         BigDecimal newBalance = user.getBalance().add(amount);
         user.setBalance(newBalance);
         userRepository.save(user);
-        transactionService.createTransaction(user, null, amount, "DEPOSIT", "NONE");
+        transactionService.createTransactionWithouCounterpary(user, amount, "DEPOSIT", "NONE");
     }
 
     @Transactional
@@ -45,7 +45,7 @@ public class UserService {
         }
         user.setBalance(newBalance);
         userRepository.save(user);
-        transactionService.createTransaction(user, null, amount, "WITHDRAW", "NONE");
+        transactionService.createTransactionWithouCounterpary(user, amount, "WITHDRAW", "NONE");
     }
 
     private User getUserById(Long userId) {

@@ -15,7 +15,7 @@ public class UserModelTest {
         User user = new User();
 
         // Act & Assert
-        assertThrows(NullPointerException.class, () -> user.setBalance(null));
+        assertThrows(IllegalArgumentException.class, () -> user.setBalance(null));
     }
 
     @Test
