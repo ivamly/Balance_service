@@ -33,14 +33,7 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    public Transaction() {}
-
-    public Transaction(User user, BigDecimal amount, String service, String orderDescription) {
-        this.user = user;
-        this.amount = amount;
-        this.service = service;
-        this.orderDescription = orderDescription;
-        this.timestamp = LocalDateTime.now();
+    public Transaction() {
     }
 
     public Transaction(User user, User counterparty, BigDecimal amount, String service, String orderDescription) {
@@ -83,6 +76,9 @@ public class Transaction {
     public void setAmount(BigDecimal amount) {
         if (amount == null) {
             throw new IllegalArgumentException("Amount cannot be null");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Amount cannot be negative");
         }
         this.amount = amount;
     }

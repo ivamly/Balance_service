@@ -21,26 +21,28 @@ public class TransactionService {
     }
 
     @Transactional
-    public void createTransactionWithCounterpary(User user, User counterparty, BigDecimal amount, String service, String order) {
-        // Проверка на допустимость входных данных
-        if (user == null || amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Invalid input data");
-        }
+    public void createTransaction(User user, User counterparty, BigDecimal amount, String service, String order) {
+        validateInput(user, amount, service, order);
         Transaction transaction = new Transaction(user, counterparty, amount, service, order);
-
         transactionRepository.save(transaction);
     }
 
-    @Transactional
-    public void createTransactionWithouCounterpary(User user, BigDecimal amount, String service, String order) {
-        // Проверка на допустимость входных данных
-        if (user == null || amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Invalid input data");
+    private void validateInput(User user, BigDecimal amount, String service, String order) {
+        if (user == null) {
+            throw new IllegalArgumentException("User must not be null");
         }
-        Transaction transaction = new Transaction(user, amount, service, order);
-
-
-        transactionRepository.save(transaction);
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount must not be null");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+        if (service == null) {
+            throw new IllegalArgumentException("Service must not be null");
+        }
+        if (order == null) {
+            throw new IllegalArgumentException("Order must not be null");
+        }
 
     }
 }
