@@ -21,13 +21,13 @@ public class TransactionService {
     }
 
     @Transactional
-    public void createTransaction(User user, User counterparty, BigDecimal amount, String service, String order) {
-        validateInput(user, amount, service, order);
-        Transaction transaction = new Transaction(user, counterparty, amount, service, order);
+    public void createTransaction(User user, BigDecimal amount, String service, String order) {
+        validateInputs(user, amount, service, order);
+        Transaction transaction = new Transaction(user, amount, service, order);
         transactionRepository.save(transaction);
     }
 
-    private void validateInput(User user, BigDecimal amount, String service, String order) {
+    private void validateInputs(User user, BigDecimal amount, String service, String order) {
         if (user == null) {
             throw new IllegalArgumentException("User must not be null");
         }
@@ -43,6 +43,5 @@ public class TransactionService {
         if (order == null) {
             throw new IllegalArgumentException("Order must not be null");
         }
-
     }
 }

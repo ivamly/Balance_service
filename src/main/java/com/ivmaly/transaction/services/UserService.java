@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -16,82 +17,66 @@ public class UserService {
 
     @Autowired
     public UserService(UserRepository userRepository, TransactionService transactionService) {
+        if (userRepository == null || transactionService == null) {
+            throw new IllegalArgumentException("UserRepository and TransactionService must not be null");
+        }
         this.userRepository = userRepository;
         this.transactionService = transactionService;
     }
 
     @Transactional
-    public void transfer(Long userId, Long counterpartyId, BigDecimal amount) {
-        validateInput(userId, counterpartyId, amount);
-
+    public void reserve(Long userId, BigDecimal amount) {
         User user = getUserById(userId);
-        User counterpartyUser = getUserById(counterpartyId);
-
-        if (counterpartyUser.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Counterparty has insufficient funds");
+        if (user.getAvailableBalance().compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient available funds");
         }
-
-        counterpartyUser.setBalance(counterpartyUser.getBalance().subtract(amount));
-        user.setBalance(user.getBalance().add(amount));
+        user.setAvailableBalance(user.getAvailableBalance().subtract(amount));
+        user.setReservedBalance(user.getReservedBalance().add(amount));
         userRepository.save(user);
-        userRepository.save(counterpartyUser);
+    }
 
-        transactionService.createTransaction(user, counterpartyUser, amount, "TRANSFER", "NONE");
+    @Transactional
+    public void undoReserve(Long userId, BigDecimal amount) {
+        User user = getUserById(userId);
+        if (user.getReservedBalance().compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient reserved funds");
+        }
+        user.setReservedBalance(user.getReservedBalance().subtract(amount));
+        user.setAvailableBalance(user.getAvailableBalance().add(amount));
+        userRepository.save(user);
     }
 
     @Transactional
     public void deposit(Long userId, BigDecimal amount) {
-        validateInput(userId, amount);
-
         User user = getUserById(userId);
-        BigDecimal newBalance = user.getBalance().add(amount);
-        user.setBalance(newBalance);
+        user.setAvailableBalance(user.getAvailableBalance().add(amount));
         userRepository.save(user);
-
-        transactionService.createTransaction(user, null, amount, "DEPOSIT", "NONE");
+        transactionService.createTransaction(user, amount, "DEPOSIT", "NONE");
     }
 
     @Transactional
-    public void withdraw(Long userId, BigDecimal amount) {
-        validateInput(userId, amount);
-
+    public void withdraw(Long userId, BigDecimal amount, String service, String order) {
         User user = getUserById(userId);
-        if (user.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Insufficient funds");
+        if (user.getReservedBalance().compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient reserved funds");
         }
-        user.setBalance(user.getBalance().subtract(amount));
+        user.setReservedBalance(user.getReservedBalance().subtract(amount));
         userRepository.save(user);
+        transactionService.createTransaction(user, amount, service, order);
+    }
 
-        transactionService.createTransaction(user, null, amount, "WITHDRAW", "NONE");
+    public BigDecimal getAvailableBalance(Long userId) {
+        User user = getUserById(userId);
+        return user.getAvailableBalance();
+    }
+
+    public BigDecimal getReservedBalance(Long userId) {
+        User user = getUserById(userId);
+        return user.getReservedBalance();
     }
 
     private User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    }
-
-    public BigDecimal getUserBalance(Long userId) {
-        return userRepository.findById(userId)
-                .map(User::getBalance)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    }
-
-    private void validateInput(Long userId, BigDecimal amount) {
-        if (userId == null || userId <= 0) {
-            throw new IllegalArgumentException("Invalid user ID");
-        }
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero");
-        }
-        if (!userRepository.existsById(userId)) {
-            throw new IllegalArgumentException("User not found");
-        }
-    }
-
-    private void validateInput(Long userId, Long counterpartyId, BigDecimal amount) {
-        validateInput(userId, amount);
-        if (counterpartyId == null || counterpartyId <= 0 || !userRepository.existsById(counterpartyId)) {
-            throw new IllegalArgumentException("Invalid counterparty ID");
-        }
+        Optional<User> userOptional = userRepository.findById(userId);
+        return userOptional.orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 }

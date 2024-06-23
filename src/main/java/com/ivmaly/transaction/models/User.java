@@ -12,35 +12,45 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+    private BigDecimal availableBalance = BigDecimal.ZERO;
+
     @Column(nullable = false)
-    private BigDecimal balance = BigDecimal.ZERO;
+    private BigDecimal reservedBalance = BigDecimal.ZERO;
 
     public User() {
     }
 
     public User(BigDecimal balance) {
-        this.balance = balance;
+        this.availableBalance = balance;
     }
 
     public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Long id) {
-        this.userId = id;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public BigDecimal getBalance() {
-        return balance;
+    public BigDecimal getAvailableBalance() {
+        return availableBalance;
     }
 
-    public void setBalance(BigDecimal balance) {
-        if (balance == null) {
-            throw new IllegalArgumentException("Balance cannot be null");
+    public void setAvailableBalance(BigDecimal availableBalance) {
+        if (availableBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("The available balance cannot be negative");
         }
-        if (balance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Balance cannot be negative");
+        this.availableBalance = availableBalance;
+    }
+
+    public BigDecimal getReservedBalance() {
+        if (reservedBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("The reserved balance cannot be negative");
         }
-        this.balance = balance;
+        return reservedBalance;
+    }
+
+    public void setReservedBalance(BigDecimal reservedBalance) {
+        this.reservedBalance = reservedBalance;
     }
 }
