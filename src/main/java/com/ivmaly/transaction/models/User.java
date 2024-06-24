@@ -12,16 +12,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+    @Column(nullable = false)
     private BigDecimal availableBalance = BigDecimal.ZERO;
 
     @Column(nullable = false)
     private BigDecimal reservedBalance = BigDecimal.ZERO;
 
     public User() {
-    }
-
-    public User(BigDecimal balance) {
-        this.availableBalance = balance;
     }
 
     public Long getUserId() {
@@ -44,13 +41,13 @@ public class User {
     }
 
     public BigDecimal getReservedBalance() {
-        if (reservedBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("The reserved balance cannot be negative");
-        }
         return reservedBalance;
     }
 
     public void setReservedBalance(BigDecimal reservedBalance) {
+        if (reservedBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("The reserved balance cannot be negative");
+        }
         this.reservedBalance = reservedBalance;
     }
 }

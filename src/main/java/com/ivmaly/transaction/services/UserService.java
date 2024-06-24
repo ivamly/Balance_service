@@ -36,17 +36,6 @@ public class UserService {
     }
 
     @Transactional
-    public void undoReserve(Long userId, BigDecimal amount) {
-        User user = getUserById(userId);
-        if (user.getReservedBalance().compareTo(amount) < 0) {
-            throw new IllegalArgumentException("Insufficient reserved funds");
-        }
-        user.setReservedBalance(user.getReservedBalance().subtract(amount));
-        user.setAvailableBalance(user.getAvailableBalance().add(amount));
-        userRepository.save(user);
-    }
-
-    @Transactional
     public void deposit(Long userId, BigDecimal amount) {
         User user = getUserById(userId);
         user.setAvailableBalance(user.getAvailableBalance().add(amount));

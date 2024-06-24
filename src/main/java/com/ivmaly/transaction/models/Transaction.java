@@ -61,7 +61,7 @@ public class Transaction {
 
     public void setAmount(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero");
+            throw new IllegalArgumentException("Amount cannot be negative");
         }
         this.amount = amount;
     }
