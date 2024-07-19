@@ -4,7 +4,6 @@ import com.ivmaly.transaction.models.User;
 import com.ivmaly.transaction.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -12,11 +11,11 @@ import org.mockito.MockitoAnnotations;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class UserServiceTest {
+class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -25,69 +24,80 @@ public class UserServiceTest {
     private UserService userService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testCreateUserWithValidAvailableBalance() {
-        BigDecimal availableBalance = BigDecimal.valueOf(100.00);
+    void createUser_withPositiveBalance_createsUser() {
+        BigDecimal balance = new BigDecimal("100.00");
 
-        userService.createUser(availableBalance);
+        userService.createUser(balance);
 
-        verify(userRepository, times(1)).save(ArgumentMatchers.any(User.class));
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    public void testCreateUserWithValidAvailableAndReservedBalance() {
-        BigDecimal availableBalance = BigDecimal.valueOf(100.00);
-        BigDecimal reservedBalance = BigDecimal.valueOf(50.00);
+    void createUser_withNegativeBalance_throwsException() {
+        BigDecimal balance = new BigDecimal("-100.00");
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.createUser(balance));
+
+        assertEquals("Available balance cannot be negative", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void createUser_withPositiveAvailableAndReservedBalance_createsUser() {
+        BigDecimal availableBalance = new BigDecimal("100.00");
+        BigDecimal reservedBalance = new BigDecimal("50.00");
 
         userService.createUser(availableBalance, reservedBalance);
 
-        verify(userRepository, times(1)).save(ArgumentMatchers.any(User.class));
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    public void testCreateUserWithNegativeAvailableBalance() {
-        BigDecimal availableBalance = BigDecimal.valueOf(-100.00);
+    void createUser_withNegativeReservedBalance_throwsException() {
+        BigDecimal availableBalance = new BigDecimal("100.00");
+        BigDecimal reservedBalance = new BigDecimal("-50.00");
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
-                userService.createUser(availableBalance));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.createUser(availableBalance, reservedBalance));
 
-        assertEquals("Available balance cannot be negative", thrown.getMessage());
+        assertEquals("Reserved balance cannot be negative", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    public void testCreateUserWithNegativeReservedBalance() {
-        BigDecimal availableBalance = BigDecimal.valueOf(100.00);
-        BigDecimal reservedBalance = BigDecimal.valueOf(-50.00);
-
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
-                userService.createUser(availableBalance, reservedBalance));
-
-        assertEquals("Reserved balance cannot be negative", thrown.getMessage());
-    }
-
-    @Test
-    public void testGetUserByIdWithExistingId() {
+    void getUserById_existingUser_returnsUser() {
         Long userId = 1L;
-        User user = new User(BigDecimal.valueOf(100.00));
+        User user = new User(BigDecimal.ZERO);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        User result = userService.getUserById(userId);
+        User foundUser = userService.getUserById(userId);
 
-        assertEquals(user, result);
+        assertNotNull(foundUser);
+        assertEquals(user, foundUser);
+        verify(userRepository, times(1)).findById(userId);
     }
 
     @Test
-    public void testGetUserByIdWithNonExistingId() {
+    void getUserById_nonExistingUser_throwsException() {
         Long userId = 1L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
-                userService.getUserById(userId));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.getUserById(userId));
 
-        assertEquals("User not found", thrown.getMessage());
+        assertEquals("User not found", exception.getMessage());
+        verify(userRepository, times(1)).findById(userId);
+    }
+
+    @Test
+    void updateUser_savesUser() {
+        User user = new User(BigDecimal.ZERO);
+
+        userService.updateUser(user);
+
+        verify(userRepository, times(1)).save(user);
     }
 }

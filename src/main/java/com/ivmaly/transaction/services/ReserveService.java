@@ -4,21 +4,24 @@ import com.ivmaly.transaction.models.Reserve;
 import com.ivmaly.transaction.models.ReserveStatus;
 import com.ivmaly.transaction.models.User;
 import com.ivmaly.transaction.repositories.ReserveRepository;
-import com.ivmaly.transaction.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+@Service
 public class ReserveService {
     private final ReserveRepository reserveRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
 
-    public ReserveService(ReserveRepository reserveRepository, UserRepository userRepository, UserService userService) {
+    @Autowired
+    public ReserveService(ReserveRepository reserveRepository, UserService userService) {
         this.reserveRepository = reserveRepository;
-        this.userRepository = userRepository;
         this.userService = userService;
     }
 
+    @Transactional
     public void createReserve(Long userId, BigDecimal reserveAmount, Long serviceId, Long orderId) throws IllegalArgumentException {
         validateNonNegative(reserveAmount);
 
@@ -30,12 +33,13 @@ public class ReserveService {
 
         user.setAvailableBalance(user.getAvailableBalance().subtract(reserveAmount));
         user.setReservedBalance(user.getReservedBalance().add(reserveAmount));
-        userRepository.save(user);
+        userService.updateUser(user);
 
         Reserve reserve = new Reserve(user, reserveAmount, serviceId, orderId);
         reserveRepository.save(reserve);
     }
 
+    @Transactional
     public void cancelReserve(Long reserveId) throws IllegalArgumentException {
         Reserve reserve = getReserveById(reserveId);
         validateStatus(reserve);
@@ -47,9 +51,10 @@ public class ReserveService {
         reserve.setReserveStatus(ReserveStatus.CANCELLED);
         reserveRepository.save(reserve);
 
-        userRepository.save(user);
+        userService.updateUser(user);
     }
 
+    @Transactional
     public void completeReserve(Long reserveId) throws IllegalArgumentException {
         Reserve reserve = getReserveById(reserveId);
         validateStatus(reserve);
@@ -60,6 +65,10 @@ public class ReserveService {
     public Reserve getReserveById(Long reserveId) {
         return reserveRepository.findById(reserveId)
                 .orElseThrow(() -> new IllegalArgumentException("Reserve not found"));
+    }
+
+    public void updateReserve(Reserve reserve) {
+        reserveRepository.save(reserve);
     }
 
     private void validateNonNegative(BigDecimal value) {

@@ -2,12 +2,16 @@ package com.ivmaly.transaction.services;
 
 import com.ivmaly.transaction.models.User;
 import com.ivmaly.transaction.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
+@Service
 public class UserService {
     private final UserRepository userRepository;
 
+    @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -28,6 +32,10 @@ public class UserService {
     public User getUserById(Long userId) throws IllegalArgumentException {
         return userRepository.findById(userId).orElseThrow(() ->
                 new IllegalArgumentException("User not found"));
+    }
+
+    public void updateUser(User user) {
+        userRepository.save(user);
     }
 
     private void validateNonNegative(BigDecimal value, String fieldName) {
