@@ -4,89 +4,107 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
-@Table(name = "transactions")
+@Table
 public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long transactionId;
+    private long transactionIdId;
 
     @ManyToOne
     @JoinColumn(nullable = false)
     private User user;
 
     @Column(nullable = false)
-    private BigDecimal amount;
+    private BigDecimal transactionAmount;
 
     @Column(nullable = false)
-    private String service;
+    private Long serviceId;
 
     @Column(nullable = false)
-    private String orderDescription;
+    private Long orderId;
 
     @Column(nullable = false)
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private TransactionType transactionType;
+
+    @Column(nullable = false)
+    private LocalDateTime transactionDateTime;
 
     public Transaction() {
     }
 
-    public Transaction(User user, BigDecimal amount, String service, String orderDescription) {
+    public Transaction(User user, BigDecimal transactionAmount) {
         this.user = user;
-        this.amount = amount;
-        this.service = service;
-        this.orderDescription = orderDescription;
+        this.transactionAmount = transactionAmount;
+        this.serviceId = 0L; // Assume that 0L ID value is reserved
+        this.orderId = 0L;   // to deposit service
+        this.transactionType = TransactionType.DEPOSIT;
+        this.transactionDateTime = LocalDateTime.now();
     }
 
-    public Long getTransactionId() {
-        return transactionId;
+    public Transaction(Reserve reserve) {
+        this.user = reserve.getUser();
+        this.transactionAmount = reserve.getReserveAmount();
+        this.serviceId = reserve.getServiceId();
+        this.orderId = reserve.getOrderId();
+        this.transactionType = TransactionType.WITHDRAWAL;
+        this.transactionDateTime = LocalDateTime.now();
     }
 
-    public void setTransactionId(Long transactionId) {
-        this.transactionId = transactionId;
+    public long getTransactionIdId() {
+        return transactionIdId;
     }
 
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public BigDecimal getTransactionAmount() {
+        return transactionAmount;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public Long getServiceId() {
+        return serviceId;
     }
 
-    public void setAmount(BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Amount cannot be negative");
-        }
-        this.amount = amount;
+    public Long getOrderId() {
+        return orderId;
     }
 
-    public String getService() {
-        return service;
+    public TransactionType getTransactionType() {
+        return transactionType;
     }
 
-    public void setService(String service) {
-        this.service = service;
+    public LocalDateTime getTransactionDateTime() {
+        return transactionDateTime;
     }
 
-    public String getOrderDescription() {
-        return orderDescription;
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "transactionIdId=" + transactionIdId +
+                ", user=" + user +
+                ", transactionAmount=" + transactionAmount +
+                ", serviceId=" + serviceId +
+                ", orderId=" + orderId +
+                ", transactionType=" + transactionType +
+                ", transactionDateTime=" + transactionDateTime +
+                '}';
     }
 
-    public void setOrderDescription(String orderDescription) {
-        this.orderDescription = orderDescription;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Transaction that = (Transaction) o;
+        return transactionIdId == that.transactionIdId && Objects.equals(user, that.user) && Objects.equals(transactionAmount, that.transactionAmount) && Objects.equals(serviceId, that.serviceId) && Objects.equals(orderId, that.orderId) && transactionType == that.transactionType && Objects.equals(transactionDateTime, that.transactionDateTime);
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+    @Override
+    public int hashCode() {
+        return Objects.hash(transactionIdId, user, transactionAmount, serviceId, orderId, transactionType, transactionDateTime);
     }
 }

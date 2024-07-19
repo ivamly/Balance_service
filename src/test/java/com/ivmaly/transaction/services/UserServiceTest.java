@@ -4,12 +4,10 @@ import com.ivmaly.transaction.models.User;
 import com.ivmaly.transaction.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -18,107 +16,78 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private TransactionService transactionService;
-
     @InjectMocks
     private UserService userService;
 
-    @Captor
-    private ArgumentCaptor<User> userCaptor;
-
-    private User user;
-
     @BeforeEach
-    void setUp() {
-        user = new User();
-        user.setUserId(1L);
-        user.setAvailableBalance(BigDecimal.valueOf(1000));
-        user.setReservedBalance(BigDecimal.valueOf(200));
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void testReserveSuccess() {
+    public void testCreateUserWithValidAvailableBalance() {
+        BigDecimal availableBalance = BigDecimal.valueOf(100.00);
+
+        userService.createUser(availableBalance);
+
+        verify(userRepository, times(1)).save(ArgumentMatchers.any(User.class));
+    }
+
+    @Test
+    public void testCreateUserWithValidAvailableAndReservedBalance() {
+        BigDecimal availableBalance = BigDecimal.valueOf(100.00);
+        BigDecimal reservedBalance = BigDecimal.valueOf(50.00);
+
+        userService.createUser(availableBalance, reservedBalance);
+
+        verify(userRepository, times(1)).save(ArgumentMatchers.any(User.class));
+    }
+
+    @Test
+    public void testCreateUserWithNegativeAvailableBalance() {
+        BigDecimal availableBalance = BigDecimal.valueOf(-100.00);
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
+                userService.createUser(availableBalance));
+
+        assertEquals("Available balance cannot be negative", thrown.getMessage());
+    }
+
+    @Test
+    public void testCreateUserWithNegativeReservedBalance() {
+        BigDecimal availableBalance = BigDecimal.valueOf(100.00);
+        BigDecimal reservedBalance = BigDecimal.valueOf(-50.00);
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
+                userService.createUser(availableBalance, reservedBalance));
+
+        assertEquals("Reserved balance cannot be negative", thrown.getMessage());
+    }
+
+    @Test
+    public void testGetUserByIdWithExistingId() {
         Long userId = 1L;
-        BigDecimal amount = BigDecimal.valueOf(100);
+        User user = new User(BigDecimal.valueOf(100.00));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        userService.reserve(userId, amount);
-        verify(userRepository).save(userCaptor.capture());
-        User savedUser = userCaptor.getValue();
-        assertEquals(BigDecimal.valueOf(900), savedUser.getAvailableBalance());
-        assertEquals(BigDecimal.valueOf(300), savedUser.getReservedBalance());
+
+        User result = userService.getUserById(userId);
+
+        assertEquals(user, result);
     }
 
     @Test
-    void testReserveInsufficientFunds() {
-        Long userId = 1L;
-        BigDecimal amount = BigDecimal.valueOf(1200);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        assertThrows(IllegalArgumentException.class, () -> userService.reserve(userId, amount));
-    }
-
-    @Test
-    void testDepositSuccess() {
-        Long userId = 1L;
-        BigDecimal amount = BigDecimal.valueOf(500);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        userService.deposit(userId, amount);
-        verify(userRepository).save(userCaptor.capture());
-        verify(transactionService).createTransaction(user, amount, "DEPOSIT", "NONE");
-        User savedUser = userCaptor.getValue();
-        assertEquals(BigDecimal.valueOf(1500), savedUser.getAvailableBalance());
-    }
-
-    @Test
-    void testWithdrawSuccess() {
-        Long userId = 1L;
-        BigDecimal amount = BigDecimal.valueOf(100);
-        String service = "testService";
-        String order = "testOrder";
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        userService.withdraw(userId, amount, service, order);
-        verify(userRepository).save(userCaptor.capture());
-        verify(transactionService).createTransaction(user, amount, service, order);
-        User savedUser = userCaptor.getValue();
-        assertEquals(BigDecimal.valueOf(100), savedUser.getReservedBalance());
-    }
-
-    @Test
-    void testWithdrawInsufficientFunds() {
-        Long userId = 1L;
-        BigDecimal amount = BigDecimal.valueOf(300);
-        String service = "testService";
-        String order = "testOrder";
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        assertThrows(IllegalArgumentException.class, () -> userService.withdraw(userId, amount, service, order));
-    }
-
-    @Test
-    void testGetAvailableBalance() {
-        Long userId = 1L;
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        BigDecimal availableBalance = userService.getAvailableBalance(userId);
-        assertEquals(BigDecimal.valueOf(1000), availableBalance);
-    }
-
-    @Test
-    void testGetReservedBalance() {
-        Long userId = 1L;
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        BigDecimal reservedBalance = userService.getReservedBalance(userId);
-        assertEquals(BigDecimal.valueOf(200), reservedBalance);
-    }
-
-    @Test
-    void testGetUserByIdUserNotFound() {
+    public void testGetUserByIdWithNonExistingId() {
         Long userId = 1L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> userService.getAvailableBalance(userId));
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
+                userService.getUserById(userId));
+
+        assertEquals("User not found", thrown.getMessage());
     }
 }
