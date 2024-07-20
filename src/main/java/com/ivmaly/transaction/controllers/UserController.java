@@ -2,6 +2,8 @@ package com.ivmaly.transaction.controllers;
 
 import com.ivmaly.transaction.models.User;
 import com.ivmaly.transaction.services.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -17,16 +19,22 @@ public class UserController {
     }
 
     @PostMapping
-    public void createUser(@RequestParam BigDecimal availableBalance,
-                           @RequestParam(required = false) BigDecimal reservedBalance) {
+    public ResponseEntity<Void> createUser(@RequestParam BigDecimal availableBalance,
+                                           @RequestParam(required = false) BigDecimal reservedBalance) {
         if (reservedBalance == null) {
             reservedBalance = BigDecimal.ZERO;
         }
         userService.createUser(availableBalance, reservedBalance);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        try {
+            User user = userService.getUserById(id);
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 }

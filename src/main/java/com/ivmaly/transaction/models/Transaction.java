@@ -36,25 +36,27 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(User user, BigDecimal transactionAmount) {
+    public Transaction(User user, BigDecimal transactionAmount, Long serviceId,
+                       Long orderId, TransactionType transactionType) {
         this.user = user;
         this.transactionAmount = transactionAmount;
-        this.serviceId = 0L; // Assume that 0L ID value is reserved
-        this.orderId = 0L;   // to deposit service
-        this.transactionType = TransactionType.DEPOSIT;
+        this.serviceId = serviceId;
+        this.orderId = orderId;
+        this.transactionType = transactionType;
         this.transactionDateTime = LocalDateTime.now();
     }
 
-    public Transaction(Reserve reserve) {
-        this.user = reserve.getUser();
-        this.transactionAmount = reserve.getReserveAmount();
-        this.serviceId = reserve.getServiceId();
-        this.orderId = reserve.getOrderId();
-        this.transactionType = TransactionType.WITHDRAWAL;
-        this.transactionDateTime = LocalDateTime.now();
+    public static Transaction createDepositTransaction(User user, BigDecimal transactionAmount) {
+        return new Transaction(user, transactionAmount, 0L,
+                0L, TransactionType.DEPOSIT);
     }
 
-    public long getTransactionIdId() {
+    public static Transaction createWithdrawalTransaction(User user, BigDecimal transactionAmount) {
+        return new Transaction(user, transactionAmount, -1L,
+                -1L, TransactionType.WITHDRAWAL);
+    }
+
+    public long getTransactionId() {
         return transactionIdId;
     }
 

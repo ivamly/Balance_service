@@ -22,7 +22,7 @@ public class ReserveService {
     }
 
     @Transactional
-    public void createReserve(Long userId, BigDecimal reserveAmount, Long serviceId, Long orderId) throws IllegalArgumentException {
+    public Reserve createReserve(Long userId, BigDecimal reserveAmount, Long serviceId, Long orderId) throws IllegalArgumentException {
         validateNonNegative(reserveAmount);
 
         User user = userService.getUserById(userId);
@@ -37,6 +37,8 @@ public class ReserveService {
 
         Reserve reserve = new Reserve(user, reserveAmount, serviceId, orderId);
         reserveRepository.save(reserve);
+
+        return reserve;
     }
 
     @Transactional
@@ -58,6 +60,8 @@ public class ReserveService {
     public void completeReserve(Long reserveId) throws IllegalArgumentException {
         Reserve reserve = getReserveById(reserveId);
         validateStatus(reserve);
+        User user = reserve.getUser();
+        user.setReservedBalance(user.getReservedBalance().subtract(reserve.getReserveAmount()));
         reserve.setReserveStatus(ReserveStatus.COMPLETED);
         reserveRepository.save(reserve);
     }

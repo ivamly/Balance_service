@@ -1,7 +1,6 @@
 package com.ivmaly.transaction.models;
 
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -23,13 +22,14 @@ public class User {
     }
 
     public User(BigDecimal availableBalance, BigDecimal reservedBalance) {
+        validateNonNegative(availableBalance, "Available balance");
+        validateNonNegative(reservedBalance, "Reserved balance");
         this.availableBalance = availableBalance;
         this.reservedBalance = reservedBalance;
     }
 
     public User(BigDecimal availableBalance) {
-        this.availableBalance = availableBalance;
-        this.reservedBalance = BigDecimal.ZERO;
+        this(availableBalance, BigDecimal.ZERO);
     }
 
     public Long getUserId() {
@@ -40,11 +40,8 @@ public class User {
         return availableBalance;
     }
 
-    public void setAvailableBalance(BigDecimal availableBalance)
-            throws IllegalArgumentException {
-        if (availableBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("The available balance cannot be negative");
-        }
+    public void setAvailableBalance(BigDecimal availableBalance) throws IllegalArgumentException {
+        validateNonNegative(availableBalance, "The available balance");
         this.availableBalance = availableBalance;
     }
 
@@ -52,11 +49,8 @@ public class User {
         return reservedBalance;
     }
 
-    public void setReservedBalance(BigDecimal reservedBalance)
-            throws IllegalArgumentException {
-        if (reservedBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("The reserved balance cannot be negative");
-        }
+    public void setReservedBalance(BigDecimal reservedBalance) throws IllegalArgumentException {
+        validateNonNegative(reservedBalance, "The reserved balance");
         this.reservedBalance = reservedBalance;
     }
 
@@ -74,11 +68,19 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(userId, user.userId) && Objects.equals(availableBalance, user.availableBalance) && Objects.equals(reservedBalance, user.reservedBalance);
+        return Objects.equals(userId, user.userId) &&
+                Objects.equals(availableBalance, user.availableBalance) &&
+                Objects.equals(reservedBalance, user.reservedBalance);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(userId, availableBalance, reservedBalance);
+    }
+
+    private void validateNonNegative(BigDecimal value, String fieldName) {
+        if (value.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(fieldName + " cannot be negative");
+        }
     }
 }

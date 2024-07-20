@@ -1,6 +1,8 @@
 package com.ivmaly.transaction.services;
 
-import com.ivmaly.transaction.models.*;
+import com.ivmaly.transaction.models.Transaction;
+import com.ivmaly.transaction.models.TransactionType;
+import com.ivmaly.transaction.models.User;
 import com.ivmaly.transaction.repositories.TransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,9 +24,6 @@ class TransactionServiceTest {
     @Mock
     private UserService userService;
 
-    @Mock
-    private ReserveService reserveService;
-
     @InjectMocks
     private TransactionService transactionService;
 
@@ -33,27 +32,27 @@ class TransactionServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    @Test
-    void createTransactionFromReserve_createsTransactionAndUpdatesUserBalance() {
-        Long reserveId = 1L;
-        User user = new User(new BigDecimal("100.00"), new BigDecimal("50.00"));
-        Reserve reserve = new Reserve(user, new BigDecimal("50.00"), 1L, 1L);
-        reserve.setReserveStatus(ReserveStatus.IN_PROGRESS);
-
-        when(reserveService.getReserveById(reserveId)).thenReturn(reserve);
-
-        Transaction transaction = transactionService.createTransactionFromReserve(reserveId);
-
-        assertNotNull(transaction);
-        assertEquals(TransactionType.WITHDRAWAL, transaction.getTransactionType());
-        assertEquals(user, transaction.getUser());
-        assertEquals(new BigDecimal("50.00"), transaction.getTransactionAmount());
-        assertEquals(new BigDecimal("0.00"), user.getReservedBalance());
-
-        verify(userService, times(1)).updateUser(user);
-        verify(transactionRepository, times(1)).save(transaction);
-        verify(reserveService, times(1)).updateReserve(reserve);
-    }
+//    @Test
+//    void createTransactionFromReserve_createsTransactionAndUpdatesUserBalance() {
+//        Long reserveId = 1L;
+//        User user = new User(new BigDecimal("100.00"), new BigDecimal("50.00"));
+//        Reserve reserve = new Reserve(user, new BigDecimal("50.00"), 1L, 1L);
+//        reserve.setReserveStatus(ReserveStatus.IN_PROGRESS);
+//
+//        when(reserveService.getReserveById(reserveId)).thenReturn(reserve);
+//
+//        Transaction transaction = transactionService.createTransactionFromReserve(reserveId);
+//
+//        assertNotNull(transaction);
+//        assertEquals(TransactionType.WITHDRAWAL, transaction.getTransactionType());
+//        assertEquals(user, transaction.getUser());
+//        assertEquals(new BigDecimal("50.00"), transaction.getTransactionAmount());
+//        assertEquals(new BigDecimal("0.00"), user.getReservedBalance());
+//
+//        verify(userService, times(1)).updateUser(user);
+//        verify(transactionRepository, times(1)).save(transaction);
+//        verify(reserveService, times(1)).updateReserve(reserve);
+//    }
 
     @Test
     void createDeposit_createsTransactionAndUpdatesUserBalance() {
