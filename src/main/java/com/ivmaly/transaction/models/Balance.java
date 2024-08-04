@@ -1,10 +1,13 @@
 package com.ivmaly.transaction.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
 @Entity
+@Table(name = "balances")
 public class Balance {
 
     @Id
@@ -12,12 +15,16 @@ public class Balance {
     private Long balanceId;
 
     @OneToOne
-    @JoinColumn
+    @JoinColumn(nullable = false)
     private User user;
 
+    @NotNull(message = "Available amount is mandatory")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Available amount must be zero or positive")
     @Column(nullable = false)
     private BigDecimal availableAmount;
 
+    @NotNull(message = "Reserved amount is mandatory")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Reserved amount must be zero or positive")
     @Column(nullable = false)
     private BigDecimal reservedAmount;
 
@@ -30,12 +37,12 @@ public class Balance {
         this.reservedAmount = reservedAmount;
     }
 
-    public Long getId() {
+    public Long getBalanceId() {
         return balanceId;
     }
 
-    public void setId(Long id) {
-        this.balanceId = id;
+    public void setBalanceId(Long balanceId) {
+        this.balanceId = balanceId;
     }
 
     public User getUser() {
@@ -65,7 +72,7 @@ public class Balance {
     @Override
     public String toString() {
         return "Balance{" +
-                "id=" + balanceId +
+                "balanceId=" + balanceId +
                 ", user=" + user +
                 ", availableAmount=" + availableAmount +
                 ", reservedAmount=" + reservedAmount +

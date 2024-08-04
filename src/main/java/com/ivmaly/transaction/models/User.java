@@ -1,6 +1,7 @@
 package com.ivmaly.transaction.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "users")
@@ -10,9 +11,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+    @NotBlank(message = "First name is mandatory")
     @Column(nullable = false)
     private String firstName;
 
+    @NotBlank(message = "Last name is mandatory")
     @Column(nullable = false)
     private String lastName;
 
@@ -44,12 +47,16 @@ public class User {
         return lastName;
     }
 
-    public void setLast_name(String lastName) {
+    public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
     @Override
     public String toString() {
-        return "User{" + "userId=" + userId + ", firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + '}';
+        return "User{" +
+                "userId=" + userId +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                '}';
     }
 }

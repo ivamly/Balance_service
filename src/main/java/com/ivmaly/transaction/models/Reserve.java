@@ -1,10 +1,11 @@
 package com.ivmaly.transaction.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "reservations")
@@ -18,16 +19,21 @@ public class Reserve {
     @JoinColumn(nullable = false)
     private User user;
 
+    @NotNull(message = "Reserve amount is mandatory")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Reserve amount must be zero or positive")
     @Column(nullable = false)
     private BigDecimal reserveAmount;
 
+    @NotNull(message = "Service ID is mandatory")
     @Column(nullable = false)
     private Long serviceId;
 
+    @NotNull(message = "Order ID is mandatory")
     @Column(nullable = false)
     private Long orderId;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "Reserve status is mandatory")
     @Column(nullable = false)
     private ReserveStatus reserveStatus;
 

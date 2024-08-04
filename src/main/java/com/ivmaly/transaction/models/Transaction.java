@@ -1,10 +1,11 @@
 package com.ivmaly.transaction.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "transactions")
@@ -18,16 +19,21 @@ public class Transaction {
     @JoinColumn(nullable = false)
     private User user;
 
+    @NotNull(message = "Transaction amount is mandatory")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Transaction amount must be zero or positive")
     @Column(nullable = false)
     private BigDecimal transactionAmount;
 
+    @NotNull(message = "Service ID is mandatory")
     @Column(nullable = false)
     private Long serviceId;
 
+    @NotNull(message = "Order ID is mandatory")
     @Column(nullable = false)
     private Long orderId;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "Transaction type is mandatory")
     @Column(nullable = false)
     private TransactionType transactionType;
 
@@ -35,6 +41,15 @@ public class Transaction {
     private LocalDateTime transactionDateTime;
 
     public Transaction() {
+    }
+
+    public Transaction(User user, BigDecimal transactionAmount, Long serviceId, Long orderId, TransactionType transactionType) {
+        this.user = user;
+        this.transactionAmount = transactionAmount;
+        this.serviceId = serviceId;
+        this.orderId = orderId;
+        this.transactionType = transactionType;
+        this.transactionDateTime = LocalDateTime.now();
     }
 
     public Transaction(User user, BigDecimal transactionAmount, Long serviceId,
@@ -48,13 +63,11 @@ public class Transaction {
     }
 
     public static Transaction createDepositTransaction(User user, BigDecimal transactionAmount) {
-        return new Transaction(user, transactionAmount, 1L,
-                1L, TransactionType.DEPOSIT, LocalDateTime.now());
+        return new Transaction(user, transactionAmount, 1L, 1L, TransactionType.DEPOSIT, LocalDateTime.now());
     }
 
     public static Transaction createWithdrawalTransaction(User user, BigDecimal transactionAmount) {
-        return new Transaction(user, transactionAmount, -1L,
-                -1L, TransactionType.WITHDRAWAL, LocalDateTime.now());
+        return new Transaction(user, transactionAmount, -1L, -1L, TransactionType.WITHDRAWAL, LocalDateTime.now());
     }
 
     public long getTransactionId() {
