@@ -6,10 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
@@ -19,13 +17,11 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createUser(@RequestParam BigDecimal availableBalance,
-                                           @RequestParam(required = false) BigDecimal reservedBalance) {
-        if (reservedBalance == null) {
-            reservedBalance = BigDecimal.ZERO;
-        }
-        userService.createUser(availableBalance, reservedBalance);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User createdUser = userService.createUser(user);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(createdUser);
     }
 
     @GetMapping("/{id}")

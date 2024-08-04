@@ -1,45 +1,52 @@
-curl -X POST "http://localhost:8080/users" -d "availableBalance=100.00" -d "reservedBalance=50.00"
+curl -X POST http://localhost:8080/user \
+     -H "Content-Type: application/json" \
+     -d '{"firstName": "Иван", "lastName": "Иванов"}'
 
-curl -X POST "http://localhost:8080/users" -d "availableBalance=100.00"
+curl -X POST http://localhost:8080/user \
+     -H "Content-Type: application/json" \
+     -d '{"firstName": "Петр", "lastName": "Петров"}'
 
-curl -X GET "http://localhost:8080/users/1"
+curl -X POST http://localhost:8080/user \
+     -H "Content-Type: application/json" \
+     -d '{"firstName": "Сергей", "lastName": "Сергеев"}'
 
-curl -X GET "http://localhost:8080/users/2"
+curl -X POST http://localhost:8080/user \
+     -H "Content-Type: application/json" \
+     -d '{"firstName": "Анна", "lastName": "Антонова"}'
 
-curl -X POST "http://localhost:8080/transactions/deposit/1" -H "Content-Type: application/json" -d "100.50"
+curl -X POST http://localhost:8080/balance/1 \
+     -H "Content-Type: application/json" \
+     -d '{"availableBalance": 1000, "reservedBalance": 0}'
 
-curl -X POST "http://localhost:8080/transactions/deposit/2" -H "Content-Type: application/json" -d "330.30"
+curl -X POST http://localhost:8080/balance/2 \
+     -H "Content-Type: application/json" \
+     -d '{"availableBalance": 700, "reservedBalance": 300}'
 
-curl -X POST "http://localhost:8080/transactions/withdrawal/1" -H "Content-Type: application/json" -d "77.50"
+curl -X POST http://localhost:8080/balance/3 \
+     -H "Content-Type: application/json" \
+     -d '{"availableBalance": 1500, "reservedBalance": 150}'
 
-curl -X POST "http://localhost:8080/transactions/withdrawal/2" -H "Content-Type: application/json" -d "50.00"
+curl -X POST http://localhost:8080/balance/4 \
+     -H "Content-Type: application/json" \
+     -d '{"availableBalance": 100, "reservedBalance": 3000}'
 
-curl -X POST "http://localhost:8080/transactions/transfer/1/2" -H "Content-Type: application/json" -d "25.00"
+curl -X POST http://localhost:8080/transaction/transfer/1/2 \
+     -H "Content-Type: application/json" \
+     -d '100'
 
-curl -X POST "http://localhost:8080/reserves" \
-     -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "userId=1&reserveAmount=50.00&serviceId=1&orderId=1"
+curl -X POST http://localhost:8080/transaction/withdrawal/3 \
+     -H "Content-Type: application/json" \
+     -d '50'
 
-curl -X POST "http://localhost:8080/reserves/1/cancel"
+curl -X POST http://localhost:8080/transaction/deposit/4 \
+     -H "Content-Type: application/json" \
+     -d '200'
 
-curl -X GET "http://localhost:8080/users/1"
+curl -X POST "http://localhost:8080/reserves?userId=1&reserveAmount=100&serviceId=1&orderId=1" \
+     -H "Content-Type: application/x-www-form-urlencoded"
 
-curl -X POST "http://localhost:8080/reserves" \
-     -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "userId=2&reserveAmount=101.30&serviceId=1&orderId=1"
+curl -X POST "http://localhost:8080/reserves?userId=1&reserveAmount=100&serviceId=1&orderId=1" \
+     -H "Content-Type: application/x-www-form-urlencoded"
 
-curl -X GET "http://localhost:8080/reserves/2"
-
-curl -X POST "http://localhost:8080/reserves/2/complete"
-
-curl -X GET "http://localhost:8080/users/2"
-
-
-
-
-
-
-
-
-
+curl -X POST "http://localhost:8080/reserves/1/complete"
 

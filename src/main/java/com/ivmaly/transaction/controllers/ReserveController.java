@@ -2,7 +2,6 @@ package com.ivmaly.transaction.controllers;
 
 import com.ivmaly.transaction.models.Reserve;
 import com.ivmaly.transaction.services.ReserveService;
-import com.ivmaly.transaction.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,35 +13,59 @@ import java.math.BigDecimal;
 public class ReserveController {
 
     private final ReserveService reserveService;
-    private final UserService userService;
 
-    public ReserveController(ReserveService reserveService, UserService userService) {
+    public ReserveController(ReserveService reserveService) {
         this.reserveService = reserveService;
-        this.userService = userService;
     }
 
     @PostMapping
-    public ResponseEntity<Reserve> createReserve(@RequestParam Long userId, @RequestParam BigDecimal reserveAmount,
-                                                 @RequestParam Long serviceId, @RequestParam Long orderId) {
-        Reserve reserve = reserveService.createReserve(userId, reserveAmount, serviceId, orderId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(reserve);
+    public ResponseEntity<?> createReserve(@RequestParam Long userId,
+                                              @RequestParam BigDecimal reserveAmount,
+                                              @RequestParam Long serviceId,
+                                              @RequestParam Long orderId) {
+        try {
+            reserveService.createReserve(userId, reserveAmount, serviceId, orderId);
+            return ResponseEntity.ok("Reserve successful");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @PostMapping("/{reserveId}/cancel")
     public ResponseEntity<Void> cancelReserve(@PathVariable Long reserveId) {
-        reserveService.cancelReserve(reserveId);
-        return ResponseEntity.noContent().build();
+        try {
+            reserveService.undoReserve(reserveId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @PostMapping("/{reserveId}/complete")
     public ResponseEntity<Void> completeReserve(@PathVariable Long reserveId) {
-        reserveService.completeReserve(reserveId);
-        return ResponseEntity.noContent().build();
+        try {
+            reserveService.completeReserve(reserveId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/{reserveId}")
     public ResponseEntity<Reserve> getReserveById(@PathVariable Long reserveId) {
-        Reserve reserve = reserveService.getReserveById(reserveId);
-        return ResponseEntity.ok(reserve);
+        try {
+            Reserve reserve = reserveService.getReserveById(reserveId);
+            return ResponseEntity.ok(reserve);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }

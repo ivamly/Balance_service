@@ -1,8 +1,6 @@
 package com.ivmaly.transaction.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
@@ -18,23 +16,19 @@ public class Balance {
     @JoinColumn(nullable = false)
     private User user;
 
-    @NotNull(message = "Available amount is mandatory")
-    @DecimalMin(value = "0.0", inclusive = true, message = "Available amount must be zero or positive")
     @Column(nullable = false)
-    private BigDecimal availableAmount;
+    private BigDecimal availableBalance;
 
-    @NotNull(message = "Reserved amount is mandatory")
-    @DecimalMin(value = "0.0", inclusive = true, message = "Reserved amount must be zero or positive")
     @Column(nullable = false)
-    private BigDecimal reservedAmount;
+    private BigDecimal reservedBalance;
 
     public Balance() {
     }
 
-    public Balance(User user, BigDecimal availableAmount, BigDecimal reservedAmount) {
+    public Balance(User user, BigDecimal availableBalance, BigDecimal reservedBalance) {
         this.user = user;
-        this.availableAmount = availableAmount;
-        this.reservedAmount = reservedAmount;
+        this.availableBalance = availableBalance;
+        this.reservedBalance = reservedBalance;
     }
 
     public Long getBalanceId() {
@@ -53,29 +47,19 @@ public class Balance {
         this.user = user;
     }
 
-    public BigDecimal getAvailableAmount() {
-        return availableAmount;
+    public BigDecimal getAvailableBalance() {
+        return availableBalance;
     }
 
-    public void setAvailableAmount(BigDecimal availableAmount) {
-        this.availableAmount = availableAmount;
+    public void setAvailableBalance(BigDecimal availableBalance) {
+        this.availableBalance = availableBalance;
     }
 
-    public BigDecimal getReservedAmount() {
-        return reservedAmount;
+    public BigDecimal getReservedBalance() {
+        return reservedBalance;
     }
 
-    public void setReservedAmount(BigDecimal reservedAmount) {
-        this.reservedAmount = reservedAmount;
-    }
-
-    @Override
-    public String toString() {
-        return "Balance{" +
-                "balanceId=" + balanceId +
-                ", user=" + user +
-                ", availableAmount=" + availableAmount +
-                ", reservedAmount=" + reservedAmount +
-                '}';
+    public void setReservedBalance(BigDecimal reservedBalance) {
+        this.reservedBalance = reservedBalance;
     }
 }

@@ -1,56 +1,70 @@
 package com.ivmaly.transaction.services;
 
+import com.ivmaly.transaction.models.Balance;
 import com.ivmaly.transaction.models.Transaction;
+import com.ivmaly.transaction.models.TransactionType;
 import com.ivmaly.transaction.models.User;
 import com.ivmaly.transaction.repositories.TransactionRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserService userService;
+    private final BalanceService balanceService;
+    private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
-    public TransactionService(TransactionRepository transactionRepository, UserService userService) {
+    public TransactionService(TransactionRepository transactionRepository, UserService userService, BalanceService balanceService) {
         this.transactionRepository = transactionRepository;
         this.userService = userService;
+        this.balanceService = balanceService;
     }
 
     @Transactional
-    public Transaction createDeposit(Long userId, BigDecimal amount) {
-        userService.depositUser(userId, amount);
+    public Transaction deposit(Long userId, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
         User user = userService.getUserById(userId);
-        Transaction transaction = Transaction.createDepositTransaction(user, amount);
+        Balance balance = balanceService.getBalanceByUser(user);
+        BigDecimal newAvailableBalance = balance.getAvailableBalance().add(amount);
+        balanceService.updateAvailableBalance(balance, newAvailableBalance);
+        Transaction transaction = new Transaction(user, amount, 1L, 1L, TransactionType.DEPOSIT);
+        logger.info("Deposit transaction completed: User ID {}, Amount {}", userId, amount);
         transactionRepository.save(transaction);
         return transaction;
     }
 
     @Transactional
-    public Transaction createWithdraw(Long userId, BigDecimal amount) {
-        userService.withdrawUser(userId, amount);
+    public Transaction withdraw(Long userId, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
         User user = userService.getUserById(userId);
-        Transaction transaction = Transaction.createWithdrawalTransaction(user, amount);
+        Balance balance = balanceService.getBalanceByUser(user);
+        if (balance.getAvailableBalance().compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient funds");
+        }
+        BigDecimal newAvailableBalance = balance.getAvailableBalance().subtract(amount);
+        balanceService.updateAvailableBalance(balance, newAvailableBalance);
+        Transaction transaction = new Transaction(user, amount, -1L, -1L, TransactionType.WITHDRAWAL);
+        logger.info("Withdrawal transaction completed: User ID {}, Amount {}", userId, amount);
         transactionRepository.save(transaction);
         return transaction;
     }
 
     @Transactional
-    public List<Transaction> createTransfer(Long userFromId, Long userToId, BigDecimal amount) {
-        List<Transaction> transactions = new ArrayList<>();
-        userService.withdrawUser(userFromId, amount);
-        User userFrom = userService.getUserById(userFromId);
-        Transaction transactionW = Transaction.createWithdrawalTransaction(userFrom, amount);
-        transactionRepository.save(transactionW);
-        userService.depositUser(userToId, amount);
-        User userTo = userService.getUserById(userToId);
-        Transaction transactionD = Transaction.createDepositTransaction(userTo, amount);
-        transactionRepository.save(transactionD);
-        transactions.add(transactionW);
-        transactions.add(transactionD);
-        return transactions;
+    public void transfer(Long userIdFrom, Long userIdTo, BigDecimal amount) {
+        if (userIdFrom.equals(userIdTo)) {
+            throw new IllegalArgumentException("Cannot transfer to the same user");
+        }
+        withdraw(userIdFrom, amount);
+        deposit(userIdTo, amount);
+        logger.info("Transfer transaction completed: From User ID {}, To User ID {}, Amount {}", userIdFrom, userIdTo, amount);
     }
 }
