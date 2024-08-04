@@ -7,12 +7,12 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "reservation")
+@Table(name = "reservations")
 public class Reserve {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long reserveId;
+    private long reservationId;
 
     @ManyToOne
     @JoinColumn(nullable = false)
@@ -27,6 +27,7 @@ public class Reserve {
     @Column(nullable = false)
     private Long orderId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReserveStatus reserveStatus;
 
@@ -34,6 +35,8 @@ public class Reserve {
     private LocalDateTime reserveDateTime;
 
     public Reserve() {
+        this.reserveStatus = ReserveStatus.IN_PROGRESS;
+        this.reserveDateTime = LocalDateTime.now();
     }
 
     public Reserve(User user, BigDecimal reserveAmount, Long serviceId, Long orderId) {
@@ -45,24 +48,53 @@ public class Reserve {
         this.reserveDateTime = LocalDateTime.now();
     }
 
-    public long getReserveId() {
-        return reserveId;
+    public Reserve(User user, BigDecimal reserveAmount, Long serviceId, Long orderId, ReserveStatus reserveStatus, LocalDateTime reserveDateTime) {
+        this.user = user;
+        this.reserveAmount = reserveAmount;
+        this.serviceId = serviceId;
+        this.orderId = orderId;
+        this.reserveStatus = reserveStatus;
+        this.reserveDateTime = reserveDateTime;
+    }
+
+    public long getReservationId() {
+        return reservationId;
+    }
+
+    public void setReservationId(long reservationId) {
+        this.reservationId = reservationId;
     }
 
     public User getUser() {
         return user;
     }
 
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     public BigDecimal getReserveAmount() {
         return reserveAmount;
+    }
+
+    public void setReserveAmount(BigDecimal reserveAmount) {
+        this.reserveAmount = reserveAmount;
     }
 
     public Long getServiceId() {
         return serviceId;
     }
 
+    public void setServiceId(Long serviceId) {
+        this.serviceId = serviceId;
+    }
+
     public Long getOrderId() {
         return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
     }
 
     public ReserveStatus getReserveStatus() {
@@ -77,10 +109,14 @@ public class Reserve {
         return reserveDateTime;
     }
 
+    public void setReserveDateTime(LocalDateTime reserveDateTime) {
+        this.reserveDateTime = reserveDateTime;
+    }
+
     @Override
     public String toString() {
         return "Reserve{" +
-                "reserveId=" + reserveId +
+                "reservationId=" + reservationId +
                 ", user=" + user +
                 ", reserveAmount=" + reserveAmount +
                 ", serviceId=" + serviceId +
@@ -88,18 +124,5 @@ public class Reserve {
                 ", reserveStatus=" + reserveStatus +
                 ", reserveDateTime=" + reserveDateTime +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Reserve reserve = (Reserve) o;
-        return reserveId == reserve.reserveId && Objects.equals(user, reserve.user) && Objects.equals(reserveAmount, reserve.reserveAmount) && Objects.equals(serviceId, reserve.serviceId) && Objects.equals(orderId, reserve.orderId) && reserveStatus == reserve.reserveStatus && Objects.equals(reserveDateTime, reserve.reserveDateTime);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(reserveId, user, reserveAmount, serviceId, orderId, reserveStatus, reserveDateTime);
     }
 }

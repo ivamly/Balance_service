@@ -1,8 +1,6 @@
 package com.ivmaly.transaction.models;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
-import java.util.Objects;
 
 @Entity
 @Table(name = "users")
@@ -13,74 +11,45 @@ public class User {
     private Long userId;
 
     @Column(nullable = false)
-    private BigDecimal availableBalance;
+    private String firstName;
 
     @Column(nullable = false)
-    private BigDecimal reservedBalance;
+    private String lastName;
 
     public User() {
     }
 
-    public User(BigDecimal availableBalance, BigDecimal reservedBalance) {
-        validateNonNegative(availableBalance, "Available balance");
-        validateNonNegative(reservedBalance, "Reserved balance");
-        this.availableBalance = availableBalance;
-        this.reservedBalance = reservedBalance;
-    }
-
-    public User(BigDecimal availableBalance) {
-        this(availableBalance, BigDecimal.ZERO);
+    public User(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
     public Long getUserId() {
         return userId;
     }
 
-    public BigDecimal getAvailableBalance() {
-        return availableBalance;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public void setAvailableBalance(BigDecimal availableBalance) throws IllegalArgumentException {
-        validateNonNegative(availableBalance, "The available balance");
-        this.availableBalance = availableBalance;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public BigDecimal getReservedBalance() {
-        return reservedBalance;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    public void setReservedBalance(BigDecimal reservedBalance) throws IllegalArgumentException {
-        validateNonNegative(reservedBalance, "The reserved balance");
-        this.reservedBalance = reservedBalance;
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLast_name(String lastName) {
+        this.lastName = lastName;
     }
 
     @Override
     public String toString() {
-        return "User{" +
-                "userId=" + userId +
-                ", availableBalance=" + availableBalance +
-                ", reservedBalance=" + reservedBalance +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return Objects.equals(userId, user.userId) &&
-                Objects.equals(availableBalance, user.availableBalance) &&
-                Objects.equals(reservedBalance, user.reservedBalance);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userId, availableBalance, reservedBalance);
-    }
-
-    private void validateNonNegative(BigDecimal value, String fieldName) {
-        if (value.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException(fieldName + " cannot be negative");
-        }
+        return "User{" + "userId=" + userId + ", firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + '}';
     }
 }
