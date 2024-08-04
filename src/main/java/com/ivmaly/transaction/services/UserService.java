@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -18,7 +20,7 @@ public class UserService {
     public User getUserById(Long id) {
         logger.info("Getting user by id: {}", id);
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
     }
 
     public User createUser(User user) {

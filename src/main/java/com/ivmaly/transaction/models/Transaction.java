@@ -45,16 +45,6 @@ public class Transaction {
         this.transactionDateTime = LocalDateTime.now();
     }
 
-    public Transaction(User user, BigDecimal transactionAmount, Long serviceId,
-                       Long orderId, TransactionType transactionType, LocalDateTime transactionDateTime) {
-        this.user = user;
-        this.transactionAmount = transactionAmount;
-        this.serviceId = serviceId;
-        this.orderId = orderId;
-        this.transactionType = transactionType;
-        this.transactionDateTime = transactionDateTime;
-    }
-
     public long getTransactionId() {
         return transactionId;
     }

@@ -13,30 +13,35 @@ import java.math.BigDecimal;
 @Service
 public class BalanceService {
     private final BalanceRepository balanceRepository;
+    private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(BalanceService.class);
 
-    public BalanceService(BalanceRepository balanceRepository) {
+    public BalanceService(BalanceRepository balanceRepository, UserService userService) {
         this.balanceRepository = balanceRepository;
+        this.userService = userService;
     }
 
     @Transactional
-    public void updateAvailableBalance(Balance balance, BigDecimal newAvailableBalance) {
+    public void updateAvailableBalance(Long userId, BigDecimal newAvailableBalance) {
+        Balance balance = getBalanceByUserId(userId);
         balance.setAvailableBalance(newAvailableBalance);
         logger.info("Updated available amount for balance ID: {}", balance.getBalanceId());
         balanceRepository.save(balance);
     }
 
     @Transactional
-    public void updateReservedBalance(Balance balance, BigDecimal newReservedBalance) {
+    public void updateReservedBalance(Long userId, BigDecimal newReservedBalance) {
+        Balance balance = getBalanceByUserId(userId);
         balance.setReservedBalance(newReservedBalance);
         logger.info("Updated reserved amount for balance ID: {}", balance.getBalanceId());
         balanceRepository.save(balance);
     }
 
-    public Balance getBalanceByUser(User user) {
-        logger.info("Getting balance by user id: {}", user.getUserId());
+    public Balance getBalanceByUserId(Long userId) {
+        logger.info("Getting balance by user id: {}", userId);
+        User user = userService.getUserById(userId);
         return balanceRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Balance not found for user id: " + user.getUserId()));
+                .orElseThrow(() -> new IllegalArgumentException("Balance not found for user id: " + userId));
     }
 
     public Balance createBalance(Balance balance) {

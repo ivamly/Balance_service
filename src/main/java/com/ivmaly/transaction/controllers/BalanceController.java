@@ -21,23 +21,28 @@ public class BalanceController {
     }
 
     @PostMapping("/{userId}")
-    public ResponseEntity<Balance> create(@PathVariable Long userId, @RequestBody Balance balance) {
+    public ResponseEntity<Balance> create(@PathVariable("userId") Long userId, @RequestBody Balance balance) {
         try {
             User user = userService.getUserById(userId);
             balance.setUser(user);
             Balance createdBalance = balanceService.createBalance(balance);
             return ResponseEntity
-                    .status(HttpStatus.CREATED).
-                    body(createdBalance);
+                    .status(HttpStatus.CREATED)
+                    .body(createdBalance);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).build();
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<Balance> getBalanceById(@PathVariable Long userId) {
-        User user = userService.getUserById(userId);
-        Balance balance = balanceService.getBalanceByUser(user);
-        return ResponseEntity.ok(balance);
+    public ResponseEntity<Balance> getBalanceById(@PathVariable("userId") Long userId) {
+        try {
+            Balance balance = balanceService.getBalanceByUserId(userId);
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(balance);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 }

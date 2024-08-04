@@ -47,16 +47,6 @@ public class Reserve {
         this.reserveDateTime = LocalDateTime.now();
     }
 
-    public Reserve(User user, BigDecimal reserveAmount, Long serviceId, Long orderId, ReserveStatus reserveStatus,
-                   LocalDateTime reserveDateTime) {
-        this.user = user;
-        this.reserveAmount = reserveAmount;
-        this.serviceId = serviceId;
-        this.orderId = orderId;
-        this.reserveStatus = reserveStatus;
-        this.reserveDateTime = reserveDateTime;
-    }
-
     public long getReservationId() {
         return reservationId;
     }

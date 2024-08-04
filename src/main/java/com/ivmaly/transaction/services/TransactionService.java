@@ -3,7 +3,6 @@ package com.ivmaly.transaction.services;
 import com.ivmaly.transaction.models.Balance;
 import com.ivmaly.transaction.models.Transaction;
 import com.ivmaly.transaction.models.TransactionType;
-import com.ivmaly.transaction.models.User;
 import com.ivmaly.transaction.repositories.TransactionRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -15,8 +14,8 @@ import java.math.BigDecimal;
 @Service
 public class TransactionService {
     private final TransactionRepository transactionRepository;
-    private final UserService userService;
     private final BalanceService balanceService;
+    private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
     public TransactionService(TransactionRepository transactionRepository, UserService userService, BalanceService balanceService) {
@@ -30,11 +29,10 @@ public class TransactionService {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
-        User user = userService.getUserById(userId);
-        Balance balance = balanceService.getBalanceByUser(user);
+        Balance balance = balanceService.getBalanceByUserId(userId);
         BigDecimal newAvailableBalance = balance.getAvailableBalance().add(amount);
-        balanceService.updateAvailableBalance(balance, newAvailableBalance);
-        Transaction transaction = new Transaction(user, amount, 1L, 1L, TransactionType.DEPOSIT);
+        balanceService.updateAvailableBalance(userId, newAvailableBalance);
+        Transaction transaction = new Transaction(userService.getUserById(userId), amount, 1L, 1L, TransactionType.DEPOSIT);
         logger.info("Deposit transaction completed: User ID {}, Amount {}", userId, amount);
         transactionRepository.save(transaction);
         return transaction;
@@ -45,14 +43,13 @@ public class TransactionService {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
-        User user = userService.getUserById(userId);
-        Balance balance = balanceService.getBalanceByUser(user);
+        Balance balance = balanceService.getBalanceByUserId(userId);
         if (balance.getAvailableBalance().compareTo(amount) < 0) {
             throw new IllegalArgumentException("Insufficient funds");
         }
         BigDecimal newAvailableBalance = balance.getAvailableBalance().subtract(amount);
-        balanceService.updateAvailableBalance(balance, newAvailableBalance);
-        Transaction transaction = new Transaction(user, amount, -1L, -1L, TransactionType.WITHDRAWAL);
+        balanceService.updateAvailableBalance(userId, newAvailableBalance);
+        Transaction transaction = new Transaction(userService.getUserById(userId), amount, -1L, -1L, TransactionType.WITHDRAWAL);
         logger.info("Withdrawal transaction completed: User ID {}, Amount {}", userId, amount);
         transactionRepository.save(transaction);
         return transaction;

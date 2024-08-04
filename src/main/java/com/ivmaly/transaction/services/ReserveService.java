@@ -13,17 +13,17 @@ import java.math.BigDecimal;
 @Service
 public class ReserveService {
     private final ReserveRepository reserveRepository;
-    private final UserService userService;
     private final BalanceService balanceService;
     private final TransactionRepository transactionRepository;
     private static final Logger logger = LoggerFactory.getLogger(ReserveService.class);
+    private final UserService userService;
 
-    public ReserveService(ReserveRepository reserveRepository, UserService userService,
-                          BalanceService balanceService, TransactionRepository transactionRepository) {
+    public ReserveService(ReserveRepository reserveRepository, BalanceService balanceService,
+                          TransactionRepository transactionRepository, UserService userService) {
         this.reserveRepository = reserveRepository;
-        this.userService = userService;
         this.balanceService = balanceService;
         this.transactionRepository = transactionRepository;
+        this.userService = userService;
     }
 
     @Transactional
@@ -31,9 +31,7 @@ public class ReserveService {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
-
-        User user = userService.getUserById(userId);
-        Balance balance = balanceService.getBalanceByUser(user);
+        Balance balance = balanceService.getBalanceByUserId(userId);
 
         if (balance.getAvailableBalance().compareTo(amount) < 0) {
             throw new IllegalArgumentException("Insufficient available balance");
@@ -42,10 +40,10 @@ public class ReserveService {
         BigDecimal newAvailableBalance = balance.getAvailableBalance().subtract(amount);
         BigDecimal newReservedBalance = balance.getReservedBalance().add(amount);
 
-        balanceService.updateAvailableBalance(balance, newAvailableBalance);
-        balanceService.updateReservedBalance(balance, newReservedBalance);
+        balanceService.updateAvailableBalance(userId, newAvailableBalance);
+        balanceService.updateReservedBalance(userId, newReservedBalance);
 
-        Reserve reserve = new Reserve(user, amount, serviceId, orderId);
+        Reserve reserve = new Reserve(userService.getUserById(userId), amount, serviceId, orderId);
         reserveRepository.save(reserve);
         logger.info("Reserve created: User ID {}, Amount {}", userId, amount);
     }
@@ -57,12 +55,12 @@ public class ReserveService {
             throw new IllegalArgumentException("Insufficient reserve status");
         }
 
-        Balance balance = balanceService.getBalanceByUser(reserve.getUser());
+        Balance balance = balanceService.getBalanceByUserId(reserve.getUser().getUserId());
         BigDecimal newReservedBalance = balance.getReservedBalance().subtract(reserve.getReserveAmount());
         BigDecimal newAvailableBalance = balance.getAvailableBalance().add(reserve.getReserveAmount());
 
-        balanceService.updateReservedBalance(balance, newReservedBalance);
-        balanceService.updateAvailableBalance(balance, newAvailableBalance);
+        balanceService.updateReservedBalance(reserve.getUser().getUserId(), newReservedBalance);
+        balanceService.updateAvailableBalance(reserve.getUser().getUserId(), newAvailableBalance);
 
         reserve.setReserveStatus(ReserveStatus.CANCELLED);
         reserveRepository.save(reserve);
@@ -76,13 +74,13 @@ public class ReserveService {
             throw new IllegalArgumentException("Insufficient reserve status");
         }
 
-        Balance balance = balanceService.getBalanceByUser(reserve.getUser());
+        Balance balance = balanceService.getBalanceByUserId(reserve.getUser().getUserId());
         if (balance.getReservedBalance().compareTo(reserve.getReserveAmount()) < 0) {
             throw new IllegalArgumentException("Reserve amount exceeds reserved balance");
         }
 
         BigDecimal newReservedBalance = balance.getReservedBalance().subtract(reserve.getReserveAmount());
-        balanceService.updateReservedBalance(balance, newReservedBalance);
+        balanceService.updateReservedBalance(reserve.getUser().getUserId(), newReservedBalance);
         Transaction transaction = new Transaction(reserve.getUser(), reserve.getReserveAmount(),
                 reserve.getServiceId(), reserve.getOrderId(), TransactionType.WITHDRAWAL);
         transactionRepository.save(transaction);
